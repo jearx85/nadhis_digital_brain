@@ -20,5 +20,10 @@
 		"obsidian": "latest",
 		"tslib": "2.4.0",
 		"typescript": "4.7.4"
+	},
+	"dependencies": {
+		"@elastic/elasticsearch": "^8.7.0",
+		"json-to-markdown": "^1.0.4",
+		"json2md": "^2.0.0"
 	}
 }
