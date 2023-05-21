@@ -5,4 +5,5 @@
 .titulos:hover{
     color: rgb(178, 88, 214);
     cursor: pointer;
+	box-shadow: 0 0 10px;
 } 
