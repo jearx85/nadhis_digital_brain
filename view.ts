@@ -42,6 +42,15 @@ export class ExampleView extends ItemView {
 		searchBox.type = "text";
 		searchBox.placeholder = "Buscar...";
 
+    //Accion para cuando se escribe en el input
+    const input = searchBox;
+    input.addEventListener("input", function () {
+      const texto = input.value;
+      container.empty();
+      buscar(texto);
+    });
+    //-----------------------------------------------------------------
+
 		//Dropdown para categorias------------------------------------------
     const opciones = ["Jurídica", "Administración", "Presupuesto", "Contabilidad"]
     const defaultOption = createEl("option");
@@ -55,19 +64,18 @@ export class ExampleView extends ItemView {
       container2.appendChild(option);
       option.textContent = opciones[i];
 
+      //Seleccionar categoria
+      container2.addEventListener("change", () => {
+        const selectedOption = container2.value;
+        //console.log("Seleccion:", selectedOption);
+        container.empty();
+        const h4 = container.createEl("h4");
+        h4.classList.add("titulos");
+				h4.textContent = selectedOption;
+      });
     };
-    // option.addEventListener('click' , async () =>{
-    //   container2.appendChild(defaultOption);
-     
-    //  });
+    //-----------------------------------------------------------------
     
-		//Accion para cuando se escribe en el input
-		const input = searchBox;
-		input.addEventListener("input", function () {
-			const texto = input.value;
-			container.empty();
-			buscar(texto);
-		});
 
 		//-------------------------------------------------------------------------------------------
 		//Funcion para listar los titulos y tarer el texto
@@ -96,8 +104,8 @@ export class ExampleView extends ItemView {
 				.then((results: any) => {
 					const titulo = results.hits.hits[0]._source.titulo; // Extraer titulo de la busqueda
 					const exist_note = checkNoteExists(vault, titulo); // Verificar si la nota ya existe
-					exist_note
-						.then((res: any) => {
+					
+					exist_note.then((res: any) => {
 							if (!res) {
 								const noteTitle = `${titulo}.md`; // Titulo de la nota
 								const noteContent = JSON.stringify( results.hits.hits[0]._source.markdown, null, 4); // Convierte el resultado de la búsqueda en una cadena JSON formateada
