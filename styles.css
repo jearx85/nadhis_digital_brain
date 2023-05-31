@@ -1,8 +1,32 @@
-/*
+ .titulos{
+    padding: 10px;
+  
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.titulos:hover{
+    color: var(--interactive-accent);
+    cursor: pointer;
+    background-color: transparent;
+} 
 
-If your plugin does not need CSS, delete this file.
+ .my-container{
+    height: 100%;
+    padding: 10px;
+    color: var(--interactive-accent);
+} 
 
-*/
+.Mydropdown{
+    width: 100%;
+    margin: 30px 0;
+    box-shadow: 0 0 5px;
+}
+.Mydropdown:hover{
+    color: var(--interactive-accent);
+}
+
+.searchBox{
+    box-shadow: 0 0 5px;
+}
+.searchBox:hover{
+    color: var(--interactive-accent);
+}
