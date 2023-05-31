@@ -43,20 +43,24 @@ export class ExampleView extends ItemView {
 		searchBox.placeholder = "Buscar...";
 
 		//Dropdown para categorias------------------------------------------
-		const option = createEl("option");
-		const option2 = createEl("option");
+    const opciones = ["Jurídica", "Administración", "Presupuesto", "Contabilidad"]
+    const defaultOption = createEl("option");
+    defaultOption.textContent = "Seleccione categoría";
+    defaultOption.selected = true;
+    defaultOption.disabled = true;
+    container2.appendChild(defaultOption);
+		
+    for(let i = 0; i < opciones.length; i++) {
+      const option = createEl("option");
+      container2.appendChild(option);
+      option.textContent = opciones[i];
 
-		container2.appendChild(option);
-		option.textContent = "Seleccione categorías...";
-
-		container2.appendChild(option2);
-		option2.textContent = "Jurídica";
-
-		//dropdown.addEventListener('click' , async () =>{
-		// console.log("hola")
-		//
-		//});
-
+    };
+    // option.addEventListener('click' , async () =>{
+    //   container2.appendChild(defaultOption);
+     
+    //  });
+    
 		//Accion para cuando se escribe en el input
 		const input = searchBox;
 		input.addEventListener("input", function () {
@@ -96,24 +100,12 @@ export class ExampleView extends ItemView {
 						.then((res: any) => {
 							if (!res) {
 								const noteTitle = `${titulo}.md`; // Titulo de la nota
-								const noteContent = JSON.stringify(
-									results.hits.hits[0]._source.markdown,
-									null,
-									4
-								); // Convierte el resultado de la búsqueda en una cadena JSON formateada
+								const noteContent = JSON.stringify( results.hits.hits[0]._source.markdown, null, 4); // Convierte el resultado de la búsqueda en una cadena JSON formateada
 
 								createNoteAndSetContent(noteTitle, noteContent); //Crea la nota en obsidian
 							} else {
-								const updatedContent = JSON.stringify(
-									results.hits.hits[0]._source.markdown,
-									null,
-									4
-								); // Convierte el resultado de la búsqueda en una cadena JSON formateada
-								updateNoteContent(
-									vault,
-									titulo,
-									updatedContent
-								);
+								const updatedContent = JSON.stringify( results.hits.hits[0]._source.markdown, null, 4); // Convierte el resultado de la búsqueda en una cadena JSON formateada
+								updateNoteContent( vault, titulo, updatedContent);
 							}
 						})
 						.catch((error: any) => console.log(error));
@@ -126,10 +118,7 @@ export class ExampleView extends ItemView {
 		//--------------------------------------------------------------------------------------
 
 		//Validar si ya existe la nota en obsidian
-		async function checkNoteExists(
-			vault: Vault,
-			title: string
-		): Promise<boolean> {
+		async function checkNoteExists( vault: Vault, title: string): Promise<boolean> {
 			const file = vault.getAbstractFileByPath(`${title}.md`);
 			return file instanceof TAbstractFile;
 		}
@@ -149,11 +138,7 @@ export class ExampleView extends ItemView {
 
 		//--------------------------------------------------------------------------------------
 		//Actualizar nota
-		async function updateNoteContent(
-			vault: Vault,
-			title: string,
-			content: string
-		): Promise<void> {
+		async function updateNoteContent( vault: Vault, title: string, content: string): Promise<void> {
 			const file = vault.getAbstractFileByPath(`${title}.md`);
 			if (file instanceof TFile) {
 				await vault.modify(file, content);
