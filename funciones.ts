@@ -2,9 +2,9 @@ import { conn } from "./conexion"
 
 const client = conn();
 
+//-------------------------------------------------------------------------------------------    
 // Obtener todos los titulos del indice
 export async function query(){
-  
     const result: any = await client.search({
       index: "prueba_palabras",
       body: {
@@ -43,11 +43,10 @@ export async function query(){
       results.push(titulo);
     }
     //console.log(results)
-   
     return results;
-
 }
 
+//-------------------------------------------------------------------------------------------    
 
 //Obtener nombre de un solo indice
 export async function busqueda(title: string){
@@ -65,9 +64,9 @@ export async function busqueda(title: string){
   
     return response;
   }
-  //busqueda("Pandas")
 
 
+//-------------------------------------------------------------------------------------------    
   // Obtener los resultados de un solo documento
 export async function queryTitle(title: string): Promise<string[]> {
     const result: any = await client.search({
@@ -102,6 +101,40 @@ export async function queryTitle(title: string): Promise<string[]> {
     //console.log(result.hits.hits[0]._source?.texto)
     return result;
   }
-  
-  //queryTitle("Ford company")
 
+//----------------------------------------------------------------
+//Query para categorías
+export async function queryCategory(title: string): Promise<string[]> {
+  const result: any = await client.search({
+    index: "prueba_palabras",
+    body: {
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "bool": {
+                "should": [
+                  {
+                    "match_phrase": {
+                      "titulo": title
+                    }
+                  }
+                ],
+                "minimum_should_match": 1
+              }
+            }
+          ],
+          "filter": [],
+          "should": [],
+          "must_not": []
+        }
+      }
+    }
+  }, {
+    ignore: [404],
+    maxRetries: 3
+  })
+  //console.log(result.hits.hits[0]._source?.texto)
+  return result;
+} 
+  
