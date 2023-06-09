@@ -5,6 +5,7 @@ export default class ExamplePlugin extends Plugin {
     // client = conn();
     currentNote: any = null;
 
+
     async onload() {
         console.log("plugin loaded");
 
@@ -16,6 +17,8 @@ export default class ExamplePlugin extends Plugin {
         );
     }
 
+
+   
 
     async onunload() {
         console.log("plugin unloaded");
@@ -29,13 +32,21 @@ export default class ExamplePlugin extends Plugin {
             type: VIEW_TYPE_EXAMPLE,
             active: true,
         });
+        await this.app.workspace.getRightLeaf(false).setViewState({
+            type: VIEW_TYPE_EXAMPLE,
+            active: true,
+        });
 
+        this.app.workspace.revealLeaf(
+            this.app.workspace.getLeavesOfType(VIEW_TYPE_EXAMPLE)[0]
+        );
         this.app.workspace.revealLeaf(
             this.app.workspace.getLeavesOfType(VIEW_TYPE_EXAMPLE)[0]
         );
 
     }
-
-
 }
+
+
+
 
