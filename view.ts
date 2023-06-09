@@ -1,5 +1,5 @@
 import { ItemView, WorkspaceLeaf, Plugin, Notice, App, Modal, Setting, TFile, TFolder, Vault, TAbstractFile, getLinkpath, MarkdownView,} from "obsidian";
-import { query, queryTitle } from "./funciones";
+import { query, queryTitle, queryCategory, queryCategories } from "./funciones";
 
 //, getIndexList
 
@@ -34,7 +34,7 @@ export class ExampleView extends ItemView {
 		this.containerEl.children[1].appendChild(searchBox);
 		this.containerEl.children[1].appendChild(container);
 
-		consultar(); //Listar los titulos en el view
+		//consultar(); //Listar los titulos en el view
 
 		//-----------------------------------------------------------------
 
@@ -44,43 +44,45 @@ export class ExampleView extends ItemView {
 
     //Accion para cuando se escribe en el input
     const input = searchBox;
-    input.addEventListener("input", function () {
+    input.addEventListener("input",  function  () {
       const texto = input.value;
+	  const selectedOption = container2.value;
+      buscar(texto, selectedOption);
       container.empty();
-      buscar(texto);
     });
     //-----------------------------------------------------------------
 
-		//Dropdown para categorias------------------------------------------
-    const opciones = ["Jurídica", "Administración", "Presupuesto", "Contabilidad"]
-    const defaultOption = createEl("option");
-    defaultOption.textContent = "Seleccione categoría";
-    defaultOption.selected = true;
-    defaultOption.disabled = true;
-    container2.appendChild(defaultOption);
-		
-    for(let i = 0; i < opciones.length; i++) {
-      const option = createEl("option");
-      container2.appendChild(option);
-      option.textContent = opciones[i];
+	//Dropdown para categorias------------------------------------------
 
-      //Seleccionar categoria
-      container2.addEventListener("change", () => {
-        const selectedOption = container2.value;
-        //console.log("Seleccion:", selectedOption);
-        container.empty();
-        const h4 = container.createEl("h4");
-        h4.classList.add("titulos");
-				h4.textContent = selectedOption;
-      });
-    };
+	const defaultOption = createEl("option");
+	defaultOption.textContent = "Seleccione categoría";
+	defaultOption.selected = true;
+	defaultOption.disabled = true;
+	container2.appendChild(defaultOption);
+
+	const opciones = await queryCategory();
+	opciones.forEach((option) => {
+		const opcion = createEl("option");
+		container2.appendChild(opcion);
+		opcion.textContent = option;
+
+	});
+	//Seleccionar categoria
+	container2.addEventListener("change", () => {
+		const selectedOption = container2.value;
+		//console.log("Seleccion:", selectedOption);
+		container.empty();
+		consultar(selectedOption);
+		
+	  });
+
     //-----------------------------------------------------------------
     
 
 		//-------------------------------------------------------------------------------------------
 		//Funcion para listar los titulos y tarer el texto
-		async function consultar() {
-			const datos = await query();
+		async function consultar(categoria: string) {
+			const datos = await queryCategories(categoria);
 			//console.log(datos);
 			datos.forEach((value: any) => {
 				const h4 = container.createEl("h4");
@@ -141,6 +143,7 @@ export class ExampleView extends ItemView {
 				//await app.workspace.activeLeaf?.openFile(newNote);
 			} catch (error) {
 				console.error(`Error creating new note: ${error}`);
+				new Notice("Error creando nueva nota");
 			}
 		}
 
@@ -156,15 +159,16 @@ export class ExampleView extends ItemView {
 
 		//--------------------------------------------------------------------------------------
 		// Filtro dinamico
-		async function buscar(valor: string) {
-			const response = query().then((dato) => {
-				//const name = dato?.find(e=>e === valor)
-				const resultados = dato.filter((item) =>
-					item.toLowerCase().includes(valor.toLowerCase())
-				);
-				mostrarResultados(resultados);
-				//console.log(resultados)
-			});
+		async function buscar(valor: string, categoria: string) {
+			
+			const response = queryCategories(categoria)        //.then((r) => console.log("RESULTADO RESPUESTA:",r));
+			.then((dato) => {         
+			 	//const name = dato?.find(e=>e === valor)
+			 	const resultados = dato.filter((item) =>
+			 		item.toLowerCase().includes(valor.toLowerCase())
+			 	);
+			 	mostrarResultados(resultados);
+			 });
 		}
 
 		// Función que muestra los resultados en la página
@@ -178,6 +182,7 @@ export class ExampleView extends ItemView {
 					h4.textContent = resultado;
 					resultadosDiv.appendChild(h4);
 					h4.classList.add("titulos");
+					queryCategories(resultado);
 					h4.addEventListener("click", () => {
 						searchTitle(resultado);
 						//new Notice(`Haz hecho clic en el elemento ${resultado}`)

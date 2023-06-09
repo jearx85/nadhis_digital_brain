@@ -37,6 +37,7 @@ export async function query(){
     //console.log(result)
     const results = [];
     const titulos = result.hits.hits
+    //console.log(titulos)
   
     for (let i = 0; i < titulos.length; i ++) {
       const titulo = result.hits.hits[i]._source?.titulo;
@@ -103,8 +104,8 @@ export async function queryTitle(title: string): Promise<string[]> {
   }
 
 //----------------------------------------------------------------
-//Query para categorías
-export async function queryCategory(title: string): Promise<string[]> {
+//Query para listar categorías
+export async function queryCategory(): Promise<string[]>{
   const result: any = await client.search({
     index: "prueba_palabras",
     body: {
@@ -115,8 +116,8 @@ export async function queryCategory(title: string): Promise<string[]> {
               "bool": {
                 "should": [
                   {
-                    "match_phrase": {
-                      "titulo": title
+                    "exists": {
+                      "field": "categoria"
                     }
                   }
                 ],
@@ -134,7 +135,58 @@ export async function queryCategory(title: string): Promise<string[]> {
     ignore: [404],
     maxRetries: 3
   })
-  //console.log(result.hits.hits[0]._source?.texto)
-  return result;
-} 
-  
+  //console.log(result)
+  const results = [];
+  const titulos = result.hits.hits
+
+  for (let i = 0; i < titulos.length; i ++) {
+    const titulo = result.hits.hits[i]._source?.categoria;
+    results.push(titulo);
+  }
+  //console.log(results)
+  return results; 
+}
+//queryCategory()
+
+//----------------------------------------------------------------
+//buscar doc por categoria asociada
+export async function queryCategories(category: string): Promise<string[]> {
+  // console.log(category);
+  const result: any = await client.search({
+    index: "prueba_palabras",
+    body: {
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "bool": {
+                "should": [
+                  {
+                    "match_phrase": {
+                      "categoria": category
+                    }
+                  }
+                ],
+                "minimum_should_match": 1
+              }
+            }
+          ],
+          "filter": [],
+          "should": [],
+          "must_not": []
+        }
+      }
+    }
+  }, {
+    ignore: [404],
+    maxRetries: 3
+  })
+  const results = [];
+  const titulos = result.hits.hits
+
+  for (let i = 0; i < titulos.length; i ++) {
+    const titulo = result.hits.hits[i]._source?.titulo;
+    results.push(titulo);
+  }
+  return results;
+}
