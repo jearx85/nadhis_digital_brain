@@ -21,66 +21,103 @@ export class ExampleView extends ItemView {
 	async onOpen() {
 		//Creación de los elementos html
 		const container = document.createElement("div");
+		//const div_spinner = document.createElement("div");
 		const searchBox = document.createElement("input");
+		const searchBoxVector = document.createElement("textarea");
 		const container2 = document.createElement("select");
+		const spinner = document.createElement('spinner');
+
+		searchBoxVector.rows = 4
+		searchBoxVector.cols = 40
 
 		//Asignación de clases
 		container.className = "my-container";
 		searchBox.className = "searchBox";
+		searchBoxVector.className = "searchBoxVector";
 		container2.className = "Mydropdown";
+		spinner.className = "spinner";
 
 		// Agrega el contenedor a la vista de Markdown
 		this.containerEl.children[1].appendChild(container2);
 		this.containerEl.children[1].appendChild(searchBox);
+		this.containerEl.children[1].appendChild(searchBoxVector);
+		this.containerEl.children[1].appendChild(spinner);
 		this.containerEl.children[1].appendChild(container);
 
 		//consultar(); //Listar los titulos en el view
 
 		//-----------------------------------------------------------------
-
 		//Caja de busqueda------------------------------------------------
 		searchBox.type = "text";
 		searchBox.placeholder = "Buscar...";
 
-    //Accion para cuando se escribe en el input
-    const input = searchBox;
-    input.addEventListener("input",  function  () {
-      const texto = input.value;
-	  const selectedOption = container2.value;
-      buscar(texto, selectedOption);
-      container.empty();
-    });
-    //-----------------------------------------------------------------
-
-	//Dropdown para categorias------------------------------------------
-
-	const defaultOption = createEl("option");
-	defaultOption.textContent = "Seleccione categoría";
-	defaultOption.selected = true;
-	defaultOption.disabled = true;
-	container2.appendChild(defaultOption);
-
-	const opciones = await queryCategory();
-	opciones.forEach((option) => {
-		const opcion = createEl("option");
-		container2.appendChild(opcion);
-		opcion.textContent = option;
-
-	});
-	//Seleccionar categoria
-	container2.addEventListener("change", () => {
-		const selectedOption = container2.value;
-		//console.log("Seleccion:", selectedOption);
-		container.empty();
-		consultar(selectedOption);
+		//Caja de busqueda por vectores------------------------------------------------
 		
-	  });
+		searchBoxVector.placeholder = "Busqueda avanzada";
+		const vectors = searchBoxVector;
+		spinner.hide();
 
-    //-----------------------------------------------------------------
+		vectors.addEventListener("keydown",  function  (event) {
+			if (event.key === "Enter") {
+				if(vectors.value.length > 0) {
+					event.preventDefault();
+					searchBoxVector.value = "";
+					spinner.style.display = 'block';
+					const searching = container.createEl("h4");
+					searching.className = "searching";
+					searching.textContent = "buscando...";
+
+					setTimeout(() => {
+						spinner.style.display = 'none';
+						container.empty();
+					}, 3000);
+				}else{
+					event.preventDefault();
+					new Notice("Escriba algo");	
+				}
+				
+			}
+		});
+		//----------------------------------------------------------------
+		//Accion para cuando se escribe en el input
+		const input = searchBox;
+		input.addEventListener("input",  function  () {
+		const texto = input.value;
+		const selectedOption = container2.value;
+		buscar(texto, selectedOption);
+		container.empty();
+		});
+		//-----------------------------------------------------------------
+
+		//Dropdown para categorias------------------------------------------
+
+		const defaultOption = createEl("option");
+		defaultOption.textContent = "Seleccione categoría";
+		defaultOption.selected = true;
+		defaultOption.disabled = true;
+		container2.appendChild(defaultOption);
+
+		const opciones = await queryCategory();
+		opciones.forEach((option) => {
+			const opcion = createEl("option");
+			container2.appendChild(opcion);
+			opcion.textContent = option;
+
+		});
+		//Seleccionar categoria
+		container2.addEventListener("change", () => {
+			const selectedOption = container2.value;
+			//console.log("Seleccion:", selectedOption);
+			container.empty();
+			consultar(selectedOption);
+			
+		});
+
+		//-----------------------------------------------------------------
     
 
-		//-------------------------------------------------------------------------------------------
-		//Funcion para listar los titulos y tarer el texto
+		//-----------------------------------------------
+		//Funcion para listar los titulos y tarer el texto------------------------------------------------------------
 		async function consultar(categoria: string) {
 			const datos = await queryCategories(categoria);
 			//console.log(datos);
@@ -93,6 +130,9 @@ export class ExampleView extends ItemView {
 					//console.log(`Haz hecho clic en el elemento ${value}`);
 					new Notice("Sincronizando documento");
 					searchTitle(value); // Hacer el query en el elemento seleccionado
+					setTimeout(() => {
+						container.empty();
+					}, 3000);
 				});
 			});
 		}

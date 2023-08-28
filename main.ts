@@ -9,13 +9,13 @@ export default class ExamplePlugin extends Plugin {
     async onload() {
         console.log("plugin loaded");
 
-        this.activateView();
         this.registerView(
             VIEW_TYPE_EXAMPLE,
             (leaf) => new ExampleView(leaf)
             
         );
-    }
+            this.activateView();
+        }
 
 
    
@@ -32,14 +32,7 @@ export default class ExamplePlugin extends Plugin {
             type: VIEW_TYPE_EXAMPLE,
             active: true,
         });
-        await this.app.workspace.getRightLeaf(false).setViewState({
-            type: VIEW_TYPE_EXAMPLE,
-            active: true,
-        });
 
-        this.app.workspace.revealLeaf(
-            this.app.workspace.getLeavesOfType(VIEW_TYPE_EXAMPLE)[0]
-        );
         this.app.workspace.revealLeaf(
             this.app.workspace.getLeavesOfType(VIEW_TYPE_EXAMPLE)[0]
         );
