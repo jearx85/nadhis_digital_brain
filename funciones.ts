@@ -3,7 +3,7 @@ import { conn } from "./conexion"
 const client = conn();
 
 //-------------------------------------------------------------------------------------------    
-// Obtener todos los titulos del indice
+//=============================> Obtener todos los titulos del indice <=============================
 export async function query(){
     const result: any = await client.search({
       index: "prueba_palabras",
@@ -48,8 +48,7 @@ export async function query(){
 }
 
 //-------------------------------------------------------------------------------------------    
-
-//Obtener nombre de un solo indice
+//=============================> Obtener nombre de un solo indice <=============================
 export async function busqueda(title: string){
     const response: any = query().then((dato) => {
     const name = dato?.find(e=>e === title)
@@ -68,7 +67,7 @@ export async function busqueda(title: string){
 
 
 //-------------------------------------------------------------------------------------------    
-  // Obtener los resultados de un solo documento
+  //=============================> Obtener los resultados de un solo documento <=============================
 export async function queryTitle(title: string): Promise<string[]> {
     const result: any = await client.search({
       index: "prueba_palabras",
@@ -104,7 +103,7 @@ export async function queryTitle(title: string): Promise<string[]> {
   }
 
 //----------------------------------------------------------------
-//Query para listar categorías
+//=============================> Query para listar categorías <=============================
 export async function queryCategory(): Promise<string[]>{
   const result: any = await client.search({
     index: "prueba_palabras",
@@ -149,7 +148,7 @@ export async function queryCategory(): Promise<string[]>{
 //queryCategory()
 
 //----------------------------------------------------------------
-//buscar doc por categoria asociada
+//=============================> buscar doc por categoria asociada <=============================
 export async function queryCategories(category: string): Promise<string[]> {
   // console.log(category);
   const result: any = await client.search({
@@ -190,3 +189,80 @@ export async function queryCategories(category: string): Promise<string[]> {
   }
   return results;
 }
+
+// ----------------------------------------------------------------
+export async function semanticQuery(title: string): Promise<string[]> {
+  const result: any = await client.search({
+    index: "vectors_index_2",
+    body: {
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "bool": {
+                "should": [
+                  {
+                    "match_phrase": {
+                      "content": title
+                    }
+                  }
+                ],
+                "minimum_should_match": 1
+              }
+            }
+          ],
+          "filter": [],
+          "should": [],
+          "must_not": []
+        }
+      }
+    }
+  }, {
+    ignore: [404],
+    maxRetries: 3
+  })
+  
+  const res = result.hits.hits[0]._source.title
+  //console.log(res)
+  return result;
+}
+
+//semanticQuery("hilda")
+
+//----------------------------------------------------------------
+export async function semanticQueryContent(content: string){
+  const result: any = await client.search({
+    index: "vectors_index_2",
+    body: {
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "bool": {
+                "should": [
+                  {
+                    "match_phrase": {
+                      "content": content
+                    }
+                  }
+                ],
+                "minimum_should_match": 1
+              }
+            }
+          ],
+          "filter": [],
+          "should": [],
+          "must_not": []
+        }
+      }
+    }
+  }, {
+    ignore: [404],
+    maxRetries: 3
+  })
+  const res = result.hits.hits[0]._source.content
+  //console.log(res)
+  return res;
+}
+//semanticQueryContent("Crin hirsuta")
+//--------------------------------------------------------------------------------------

@@ -1,7 +1,8 @@
 import { ItemView, WorkspaceLeaf, Plugin, Notice, App, Modal, Setting, TFile, TFolder, Vault, TAbstractFile, getLinkpath, MarkdownView,} from "obsidian";
-import { query, queryTitle, queryCategory, queryCategories } from "./funciones";
+import { query, queryTitle, queryCategory, queryCategories, semanticQuery, semanticQueryContent } from "./funciones";
+import { TIMEOUT } from "dns";
+const axios = require('axios');
 
-//, getIndexList
 
 export const VIEW_TYPE_EXAMPLE = "example-view";
 
@@ -21,14 +22,13 @@ export class ExampleView extends ItemView {
 	async onOpen() {
 		//Creación de los elementos html
 		const container = document.createElement("div");
-		//const div_spinner = document.createElement("div");
 		const searchBox = document.createElement("input");
 		const searchBoxVector = document.createElement("textarea");
 		const container2 = document.createElement("select");
 		const spinner = document.createElement('spinner');
 
-		searchBoxVector.rows = 4
-		searchBoxVector.cols = 40
+		searchBoxVector.rows = 4//Text area para busquedas
+		searchBoxVector.cols = 40//Text area para busquedas
 
 		//Asignación de clases
 		container.className = "my-container";
@@ -47,39 +47,44 @@ export class ExampleView extends ItemView {
 		//consultar(); //Listar los titulos en el view
 
 		//-----------------------------------------------------------------
-		//Caja de busqueda------------------------------------------------
+		//======================================> Caja de busqueda <======================================
 		searchBox.type = "text";
 		searchBox.placeholder = "Buscar...";
 
-		//Caja de busqueda por vectores------------------------------------------------
+		//======================================> Caja de busqueda por vectores <===========================
 		
 		searchBoxVector.placeholder = "Busqueda avanzada";
 		const vectors = searchBoxVector;
 		spinner.hide();
 
-		vectors.addEventListener("keydown",  function  (event) {
+		vectors.addEventListener("keydown",function  (event) {
 			if (event.key === "Enter") {
 				if(vectors.value.length > 0) {
 					event.preventDefault();
-					searchBoxVector.value = "";
+					//searchBoxVector.value = "";
+
 					spinner.style.display = 'block';
 					const searching = container.createEl("h4");
 					searching.className = "searching";
 					searching.textContent = "buscando...";
+					
 
-					setTimeout(() => {
-						spinner.style.display = 'none';
-						container.empty();
-					}, 3000);
+					const data = searchBoxVector.value;
+					getEmbeddings(data).then(() => {
+						searching.textContent = "";
+					});
+					
+
 				}else{
 					event.preventDefault();
-					new Notice("Escriba algo");	
+					new Notice("El campo de busqueda esta vacío");	
 				}
-				
 			}
 		});
+
 		//----------------------------------------------------------------
-		//Accion para cuando se escribe en el input
+		//======================================> Accion para cuando se escribe en el input <======================================
+
 		const input = searchBox;
 		input.addEventListener("input",  function  () {
 		const texto = input.value;
@@ -87,9 +92,9 @@ export class ExampleView extends ItemView {
 		buscar(texto, selectedOption);
 		container.empty();
 		});
-		//-----------------------------------------------------------------
 
-		//Dropdown para categorias------------------------------------------
+		//-----------------------------------------------------------------
+		//======================================> Dropdown para categorias <======================================
 
 		const defaultOption = createEl("option");
 		defaultOption.textContent = "Seleccione categoría";
@@ -113,11 +118,9 @@ export class ExampleView extends ItemView {
 			
 		});
 
-		//-----------------------------------------------------------------
-    
-
 		//-----------------------------------------------
-		//Funcion para listar los titulos y tarer el texto------------------------------------------------------------
+		//======================================> Funcion para listar los titulos y tarer el texto <======================================
+
 		async function consultar(categoria: string) {
 			const datos = await queryCategories(categoria);
 			//console.log(datos);
@@ -130,7 +133,14 @@ export class ExampleView extends ItemView {
 					//console.log(`Haz hecho clic en el elemento ${value}`);
 					new Notice("Sincronizando documento");
 					searchTitle(value); // Hacer el query en el elemento seleccionado
+					
 					setTimeout(() => {
+						defaultOption.textContent = "Seleccione categoría";
+						defaultOption.selected = true;
+						defaultOption.disabled = true;
+						setTimeout(() => {
+							openDocuments(value);
+						}, 2000)
 						container.empty();
 					}, 3000);
 				});
@@ -138,8 +148,8 @@ export class ExampleView extends ItemView {
 		}
 
 		//-----------------------------------------------------------------------------------------
+		//======================================> Hacer el query en el elemento seleccionado <======================================
 
-		/// Hacer el query en el elemento seleccionado
 		async function searchTitle(title: string) {
 			const vault = app.vault;
 			queryTitle(`${title}`)
@@ -166,15 +176,16 @@ export class ExampleView extends ItemView {
 		}
 
 		//--------------------------------------------------------------------------------------
+		//=============================> Validar si ya existe la nota en obsidian <======================================
 
-		//Validar si ya existe la nota en obsidian
 		async function checkNoteExists( vault: Vault, title: string): Promise<boolean> {
 			const file = vault.getAbstractFileByPath(`${title}.md`);
 			return file instanceof TAbstractFile;
 		}
 
 		//--------------------------------------------------------------------------------------
-		//Crear nueva nota
+		//=============================> Crear nueva nota <======================================
+
 		async function createNoteAndSetContent(title: string, content: string) {
 			try {
 				const newNote = await app.vault.create(title, content);
@@ -188,17 +199,21 @@ export class ExampleView extends ItemView {
 		}
 
 		//--------------------------------------------------------------------------------------
-		//Actualizar nota
+		//=============================> Actualizar nota <======================================
+
 		async function updateNoteContent( vault: Vault, title: string, content: string): Promise<void> {
 			const file = vault.getAbstractFileByPath(`${title}.md`);
 			if (file instanceof TFile) {
 				await vault.modify(file, content);
 				new Notice("Documento actualizado");
+				//console.log(file)
+				
 			}
 		}
 
 		//--------------------------------------------------------------------------------------
-		// Filtro dinamico
+		//=============================> Filtro dinamico <======================================
+
 		async function buscar(valor: string, categoria: string) {
 			
 			const response = queryCategories(categoria)        //.then((r) => console.log("RESULTADO RESPUESTA:",r));
@@ -211,7 +226,9 @@ export class ExampleView extends ItemView {
 			 });
 		}
 
-		// Función que muestra los resultados en la página
+		//--------------------------------------------------------------------------------------
+		//=============================> Función que muestra los resultados en la página <=============================
+
 		async function mostrarResultados(resultados: string[]) {
 			const resultadosDiv = container;
 			if (resultadosDiv) {
@@ -232,21 +249,84 @@ export class ExampleView extends ItemView {
 		}
 
 		//--------------------------------------------------------------------------------------
-		// Abrir la nota seleccionada
+		//========> Abrir la nota seleccionada <============
 
-		async function getdocuments(title: string) {
+		async function openDocuments(title: string) {
 			const note = app.vault
 				.getMarkdownFiles()
 				.find((file) => file.name === `${title}.md`);
 			console.log("ruta: " + note?.path);
 
 			if (note) {
-				return getLinkpath(note.path);
+				let nota = getLinkpath(note.path);
+				try{
+					open(nota);
+				}catch (error){
+					console.error(error);
+				}
 			} else {
 				return null;
 			}
 		}
+
+		//--------------------------------------------------------------------------------------
+		//======================> Funcion para busqueda vectorizada <===========================
+		async function getEmbeddings(query: string){
+			const url = `http://192.168.50.231:8087/query/${query}`;
+
+			try {
+				const respuesta = await axios.get(url);
+				spinner.style.display = 'none';
+				
+				const tamaño_res = respuesta.data.hits.length
+
+                for (let i = 0; i < tamaño_res; i++) {
+					const titulo =respuesta.data.hits[i]._source.title
+					const res = container.createEl("h4");
+					res.classList.add("titulos");
+				 	res.textContent = titulo;
+
+			
+					 const vault = app.vault;
+
+					 res.addEventListener("click", () =>{
+						 semanticQueryContent(titulo).then((results) => {
+ 
+							 const contenido = results // Extraer titulo de la busqueda
+							// console.log(contenido)
+							 const exist_note = checkNoteExists(vault, titulo); // Verificar si la nota ya existe
+							 
+							 exist_note.then((res: any) => {
+							 		if (!res) {
+							 			const noteTitle = `${titulo}.md`; // Titulo de la nota
+							 			const noteContent = JSON.stringify( contenido, null, 4); // Convierte el resultado de la búsqueda en una cadena JSON formateada
+							 			createNoteAndSetContent(noteTitle, noteContent); //Crea la nota en obsidian
+							 		} else {
+							 			const updatedContent = JSON.stringify( contenido, null, 4); // Convierte el resultado de la búsqueda en una cadena JSON formateada
+							 			updateNoteContent( vault, titulo, updatedContent);
+							 		}
+							 	})
+							 	.catch((error: any) => console.log(error));
+ 
+							 container.empty();
+							 searchBoxVector.value = "";
+						 })
+						 .catch((error) => {
+							 console.error(`Error searching in Elasticsearch: ${error}`);
+						 });
+					 });
+				}
+			} catch (error) {
+				console.log(error);
+			}	
+		}
 	}
+			
+				
+				
+
+  
+  
 	//--------------------------------------------------------------------------------------
 
 	async onClose() {
