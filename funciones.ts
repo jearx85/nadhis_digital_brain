@@ -230,7 +230,7 @@ export async function semanticQuery(title: string): Promise<string[]> {
 //semanticQuery("hilda")
 
 //----------------------------------------------------------------
-export async function semanticQueryContent(content: string){
+export async function semanticQueryContent(titulo: string){
   const result: any = await client.search({
     index: "vectors_index_2",
     body: {
@@ -242,7 +242,7 @@ export async function semanticQueryContent(content: string){
                 "should": [
                   {
                     "match_phrase": {
-                      "content": content
+                      "title": titulo
                     }
                   }
                 ],
@@ -264,5 +264,5 @@ export async function semanticQueryContent(content: string){
   //console.log(res)
   return res;
 }
-//semanticQueryContent("Crin hirsuta")
+//semanticQueryContent("Las ovejas")
 //--------------------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 import { Plugin, Notice, App, Modal, Setting, TFile, TFolder, Vault, TAbstractFile } from "obsidian";
-import { ExampleView, VIEW_TYPE_EXAMPLE } from "./view";
+import { NadhisView, NADHIS_VIEW } from "./view";
 
 export default class ExamplePlugin extends Plugin {
     // client = conn();
@@ -10,8 +10,8 @@ export default class ExamplePlugin extends Plugin {
         console.log("plugin loaded");
 
         this.registerView(
-            VIEW_TYPE_EXAMPLE,
-            (leaf) => new ExampleView(leaf)
+            NADHIS_VIEW,
+            (leaf) => new NadhisView(leaf)
             
         );
             this.activateView();
@@ -22,19 +22,19 @@ export default class ExamplePlugin extends Plugin {
 
     async onunload() {
         console.log("plugin unloaded");
-        this.app.workspace.detachLeavesOfType(VIEW_TYPE_EXAMPLE);
+        this.app.workspace.detachLeavesOfType(NADHIS_VIEW);
     }
 
     async activateView() {
-        this.app.workspace.detachLeavesOfType(VIEW_TYPE_EXAMPLE);
+        this.app.workspace.detachLeavesOfType(NADHIS_VIEW);
 
         await this.app.workspace.getRightLeaf(false).setViewState({
-            type: VIEW_TYPE_EXAMPLE,
+            type: NADHIS_VIEW,
             active: true,
         });
 
         this.app.workspace.revealLeaf(
-            this.app.workspace.getLeavesOfType(VIEW_TYPE_EXAMPLE)[0]
+            this.app.workspace.getLeavesOfType(NADHIS_VIEW)[0]
         );
 
     }

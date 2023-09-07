@@ -3,9 +3,9 @@
 	"name": "Elasticsearch docs",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "This is a sample plugin for Obsidian. This plugin demonstrates some of the capabilities of the Obsidian API.",
+	"description": "Busca tus documentos de manera sencilla con este plugin",
 	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"authorUrl": "https://www.mannazgroup.com.co/",
+	"fundingUrl": "https://www.mannazgroup.com.co/",
 	"isDesktopOnly": false
 }

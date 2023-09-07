@@ -1,18 +1,18 @@
-import { ItemView, WorkspaceLeaf, Plugin, Notice, App, Modal, Setting, TFile, TFolder, Vault, TAbstractFile, getLinkpath, MarkdownView,} from "obsidian";
-import { query, queryTitle, queryCategory, queryCategories, semanticQuery, semanticQueryContent } from "./funciones";
-import { TIMEOUT } from "dns";
+import { ItemView, WorkspaceLeaf, Plugin, Notice, App, Modal, Setting, TFile, TFolder, Vault, TAbstractFile, Workspace  } from "obsidian";
+import { queryTitle, queryCategory, queryCategories, semanticQueryContent } from "./funciones";
+
 const axios = require('axios');
 
 
-export const VIEW_TYPE_EXAMPLE = "example-view";
+export const NADHIS_VIEW = "Nadhis-view";
 
-export class ExampleView extends ItemView {
+export class NadhisView extends ItemView {
 	constructor(leaf: WorkspaceLeaf) {
 		super(leaf);
 	}
 
 	getViewType() {
-		return VIEW_TYPE_EXAMPLE;
+		return NADHIS_VIEW;
 	}
 
 	getDisplayText() {
@@ -59,25 +59,26 @@ export class ExampleView extends ItemView {
 
 		vectors.addEventListener("keydown",function  (event) {
 			if (event.key === "Enter") {
+				container.empty();
 				if(vectors.value.length > 0) {
 					event.preventDefault();
-					//searchBoxVector.value = "";
 
 					spinner.style.display = 'block';
 					const searching = container.createEl("h4");
 					searching.className = "searching";
 					searching.textContent = "buscando...";
 					
-
 					const data = searchBoxVector.value;
 					getEmbeddings(data).then(() => {
 						searching.textContent = "";
+						searchBoxVector.value = "";
 					});
 					
 
 				}else{
 					event.preventDefault();
 					new Notice("El campo de busqueda esta vacío");	
+					container.empty();
 				}
 			}
 		});
@@ -115,7 +116,7 @@ export class ExampleView extends ItemView {
 			//console.log("Seleccion:", selectedOption);
 			container.empty();
 			consultar(selectedOption);
-			
+			defaultOption.textContent = "Seleccione categoría";
 		});
 
 		//-----------------------------------------------
@@ -125,24 +126,21 @@ export class ExampleView extends ItemView {
 			const datos = await queryCategories(categoria);
 			//console.log(datos);
 			datos.forEach((value: any) => {
-				const h4 = container.createEl("h4");
-				h4.textContent = value;
-				h4.classList.add("titulos");
+				const titulos = container.createEl("h4");
+				titulos.textContent = value;
+				titulos.classList.add("titulos");
 
-				h4.addEventListener("click", async () => {
+				titulos.addEventListener("click", async () => {
+					
+					
 					//console.log(`Haz hecho clic en el elemento ${value}`);
 					new Notice("Sincronizando documento");
 					searchTitle(value); // Hacer el query en el elemento seleccionado
+					defaultOption.textContent = "Seleccione categoría";
+					defaultOption.selected = true;
+					defaultOption.disabled = true;
+					container.empty();
 					
-					setTimeout(() => {
-						defaultOption.textContent = "Seleccione categoría";
-						defaultOption.selected = true;
-						defaultOption.disabled = true;
-						setTimeout(() => {
-							openDocuments(value);
-						}, 2000)
-						container.empty();
-					}, 3000);
 				});
 			});
 		}
@@ -156,16 +154,21 @@ export class ExampleView extends ItemView {
 				.then((results: any) => {
 					const titulo = results.hits.hits[0]._source.titulo; // Extraer titulo de la busqueda
 					const exist_note = checkNoteExists(vault, titulo); // Verificar si la nota ya existe
-					
 					exist_note.then((res: any) => {
 							if (!res) {
 								const noteTitle = `${titulo}.md`; // Titulo de la nota
 								const noteContent = JSON.stringify( results.hits.hits[0]._source.markdown, null, 4); // Convierte el resultado de la búsqueda en una cadena JSON formateada
-
 								createNoteAndSetContent(noteTitle, noteContent); //Crea la nota en obsidian
+								
+								setTimeout(() => {
+									openDocuments(titulo);
+								
+								}, 1000);
+								
 							} else {
 								const updatedContent = JSON.stringify( results.hits.hits[0]._source.markdown, null, 4); // Convierte el resultado de la búsqueda en una cadena JSON formateada
 								updateNoteContent( vault, titulo, updatedContent);
+
 							}
 						})
 						.catch((error: any) => console.log(error));
@@ -189,9 +192,9 @@ export class ExampleView extends ItemView {
 		async function createNoteAndSetContent(title: string, content: string) {
 			try {
 				const newNote = await app.vault.create(title, content);
-				console.log(`Created new note: ${newNote.name}`);
+				//console.log(`Created new note: ${newNote.name}`);
 				new Notice("Nuevo documento creado");
-				//await app.workspace.activeLeaf?.openFile(newNote);
+
 			} catch (error) {
 				console.error(`Error creating new note: ${error}`);
 				new Notice("Error creando nueva nota");
@@ -242,6 +245,12 @@ export class ExampleView extends ItemView {
 					queryCategories(resultado);
 					h4.addEventListener("click", () => {
 						searchTitle(resultado);
+						container.empty();
+						searchBoxVector.textContent = "";
+						searchBox.value = "";
+						defaultOption.selected = true;
+						defaultOption.disabled = true;
+						defaultOption.textContent = "Seleccione categoría";
 						//new Notice(`Haz hecho clic en el elemento ${resultado}`)
 					});
 				}
@@ -252,15 +261,12 @@ export class ExampleView extends ItemView {
 		//========> Abrir la nota seleccionada <============
 
 		async function openDocuments(title: string) {
-			const note = app.vault
-				.getMarkdownFiles()
-				.find((file) => file.name === `${title}.md`);
-			console.log("ruta: " + note?.path);
+			const note = app.vault.getAbstractFileByPath(`${title}.md`)
 
 			if (note) {
-				let nota = getLinkpath(note.path);
 				try{
-					open(nota);
+					//console.log("Abrir nota...")
+					app.workspace.openLinkText(note?.path,"",true);
 				}catch (error){
 					console.error(error);
 				}
@@ -279,21 +285,19 @@ export class ExampleView extends ItemView {
 				spinner.style.display = 'none';
 				
 				const tamaño_res = respuesta.data.hits.length
-
                 for (let i = 0; i < tamaño_res; i++) {
 					const titulo =respuesta.data.hits[i]._source.title
 					const res = container.createEl("h4");
 					res.classList.add("titulos");
-				 	res.textContent = titulo;
-
-			
+					res.textContent = titulo;
+				
 					 const vault = app.vault;
 
 					 res.addEventListener("click", () =>{
 						 semanticQueryContent(titulo).then((results) => {
  
-							 const contenido = results // Extraer titulo de la busqueda
-							// console.log(contenido)
+							 const contenido = results.replaceAll('\n', '<br>');
+							//console.log(contenido)
 							 const exist_note = checkNoteExists(vault, titulo); // Verificar si la nota ya existe
 							 
 							 exist_note.then((res: any) => {
@@ -301,6 +305,12 @@ export class ExampleView extends ItemView {
 							 			const noteTitle = `${titulo}.md`; // Titulo de la nota
 							 			const noteContent = JSON.stringify( contenido, null, 4); // Convierte el resultado de la búsqueda en una cadena JSON formateada
 							 			createNoteAndSetContent(noteTitle, noteContent); //Crea la nota en obsidian
+
+										 setTimeout(() => {
+											openDocuments(titulo);
+										
+										}, 500);
+
 							 		} else {
 							 			const updatedContent = JSON.stringify( contenido, null, 4); // Convierte el resultado de la búsqueda en una cadena JSON formateada
 							 			updateNoteContent( vault, titulo, updatedContent);
