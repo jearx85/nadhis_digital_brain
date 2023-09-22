@@ -52,7 +52,6 @@ export class NadhisView extends ItemView {
 		searchBox.placeholder = "Buscar...";
 
 		//======================================> Caja de busqueda por vectores <===========================
-		
 		searchBoxVector.placeholder = "Busqueda avanzada";
 		const vectors = searchBoxVector;
 		spinner.hide();
@@ -152,12 +151,12 @@ export class NadhisView extends ItemView {
 			const vault = app.vault;
 			queryTitle(`${title}`)
 				.then((results: any) => {
-					const titulo = results.hits.hits[0]._source.titulo; // Extraer titulo de la busqueda
+					const titulo = results.hits.hits[0]._source.title; // Extraer titulo de la busqueda
 					const exist_note = checkNoteExists(vault, titulo); // Verificar si la nota ya existe
 					exist_note.then((res: any) => {
 							if (!res) {
 								const noteTitle = `${titulo}.md`; // Titulo de la nota
-								const noteContent = JSON.stringify( results.hits.hits[0]._source.markdown, null, 4); // Convierte el resultado de la búsqueda en una cadena JSON formateada
+								const noteContent = JSON.stringify( results.hits.hits[0]._source.mark, null, 4); // Convierte el resultado de la búsqueda en una cadena JSON formateada
 								createNoteAndSetContent(noteTitle, noteContent); //Crea la nota en obsidian
 								
 								setTimeout(() => {
@@ -166,7 +165,7 @@ export class NadhisView extends ItemView {
 								}, 1000);
 								
 							} else {
-								const updatedContent = JSON.stringify( results.hits.hits[0]._source.markdown, null, 4); // Convierte el resultado de la búsqueda en una cadena JSON formateada
+								const updatedContent = JSON.stringify( results.hits.hits[0]._source.mark, null, 4); // Convierte el resultado de la búsqueda en una cadena JSON formateada
 								updateNoteContent( vault, titulo, updatedContent);
 
 							}
@@ -278,7 +277,7 @@ export class NadhisView extends ItemView {
 		//--------------------------------------------------------------------------------------
 		//======================> Funcion para busqueda vectorizada <===========================
 		async function getEmbeddings(query: string){
-			const url = `http://192.168.50.231:8087/query/${query}`;
+			const url = `http://192.168.50.230:8087/query/${query}`;
 
 			try {
 				const respuesta = await axios.get(url);

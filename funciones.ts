@@ -6,7 +6,7 @@ const client = conn();
 //=============================> Obtener todos los titulos del indice <=============================
 export async function query(){
     const result: any = await client.search({
-      index: "prueba_palabras",
+      index: "nadhis_digital_brain",
       body: {
         "query": {
           "bool": {
@@ -70,7 +70,7 @@ export async function busqueda(title: string){
   //=============================> Obtener los resultados de un solo documento <=============================
 export async function queryTitle(title: string): Promise<string[]> {
     const result: any = await client.search({
-      index: "prueba_palabras",
+      index: "nadhis_digital_brain",
       body: {
         "query": {
           "bool": {
@@ -80,7 +80,7 @@ export async function queryTitle(title: string): Promise<string[]> {
                   "should": [
                     {
                       "match_phrase": {
-                        "titulo": title
+                        "title": title
                       }
                     }
                   ],
@@ -98,15 +98,16 @@ export async function queryTitle(title: string): Promise<string[]> {
       ignore: [404],
       maxRetries: 3
     })
-    //console.log(result.hits.hits[0]._source?.texto)
+    //console.log(result.hits.hits[0]._source.mark)
     return result;
   }
+
 
 //----------------------------------------------------------------
 //=============================> Query para listar categorías <=============================
 export async function queryCategory(): Promise<string[]>{
   const result: any = await client.search({
-    index: "prueba_palabras",
+    index: "nadhis_digital_brain",
     body: {
       "query": {
         "bool": {
@@ -142,17 +143,17 @@ export async function queryCategory(): Promise<string[]>{
     const titulo = result.hits.hits[i]._source?.categoria;
     results.push(titulo);
   }
-  //console.log(results)
-  return results; 
+  const set: any = new Set(results);
+  //console.log(set)
+  return set; 
 }
-//queryCategory()
 
 //----------------------------------------------------------------
 //=============================> buscar doc por categoria asociada <=============================
 export async function queryCategories(category: string): Promise<string[]> {
   // console.log(category);
   const result: any = await client.search({
-    index: "prueba_palabras",
+    index: "nadhis_digital_brain",
     body: {
       "query": {
         "bool": {
@@ -184,16 +185,17 @@ export async function queryCategories(category: string): Promise<string[]> {
   const titulos = result.hits.hits
 
   for (let i = 0; i < titulos.length; i ++) {
-    const titulo = result.hits.hits[i]._source?.titulo;
+    const titulo = result.hits.hits[i]._source?.title;
     results.push(titulo);
   }
+  //console.log(results)
   return results;
 }
 
 // ----------------------------------------------------------------
 export async function semanticQuery(title: string): Promise<string[]> {
   const result: any = await client.search({
-    index: "vectors_index_2",
+    index: "nadhis_digital_brain",
     body: {
       "query": {
         "bool": {
@@ -232,7 +234,7 @@ export async function semanticQuery(title: string): Promise<string[]> {
 //----------------------------------------------------------------
 export async function semanticQueryContent(titulo: string){
   const result: any = await client.search({
-    index: "vectors_index_2",
+    index: "nadhis_digital_brain",
     body: {
       "query": {
         "bool": {
@@ -260,9 +262,9 @@ export async function semanticQueryContent(titulo: string){
     ignore: [404],
     maxRetries: 3
   })
-  const res = result.hits.hits[0]._source.content
+  const res = result.hits.hits[0]._source.mark
   //console.log(res)
   return res;
 }
-//semanticQueryContent("Las ovejas")
+//semanticQueryContent("Caracterizacion-ciudadania-y-grupos-de-valor-2022")
 //--------------------------------------------------------------------------------------
