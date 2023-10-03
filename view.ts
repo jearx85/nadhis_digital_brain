@@ -20,6 +20,12 @@ export class NadhisView extends ItemView {
 	}
 
 	async onOpen() {
+		const files = this.app.vault.getFiles()//Obtener todos los documentos del vault  
+  
+		for (let i = 0; i < files.length; i++) {
+		console.log(files[i].path);
+		}
+		//---------------------------------------------------------------------------------
 		//Creación de los elementos html
 		const container = document.createElement("div");
 		const searchBox = document.createElement("input");
@@ -156,16 +162,18 @@ export class NadhisView extends ItemView {
 					exist_note.then((res: any) => {
 							if (!res) {
 								const noteTitle = `${titulo}.md`; // Titulo de la nota
-								const noteContent = JSON.stringify( results.hits.hits[0]._source.mark, null, 4); // Convierte el resultado de la búsqueda en una cadena JSON formateada
+								const noteContent = results.hits.hits[0]._source.mark; // Convierte el resultado de la búsqueda en una cadena JSON formateada
+								
 								createNoteAndSetContent(noteTitle, noteContent); //Crea la nota en obsidian
 								
 								setTimeout(() => {
-									openDocuments(titulo);
+									openDocuments(titulo);//espera a que la nota se cree y luego la abre
 								
 								}, 1000);
 								
 							} else {
-								const updatedContent = JSON.stringify( results.hits.hits[0]._source.mark, null, 4); // Convierte el resultado de la búsqueda en una cadena JSON formateada
+								const updatedContent = results.hits.hits[0]._source.mark; // Convierte el resultado de la búsqueda en una cadena JSON formateada
+								
 								updateNoteContent( vault, titulo, updatedContent);
 
 							}
@@ -294,25 +302,21 @@ export class NadhisView extends ItemView {
 
 					 res.addEventListener("click", () =>{
 						 semanticQueryContent(titulo).then((results) => {
- 
-							 const contenido = results.replaceAll('\n', '<br>');
 							//console.log(contenido)
 							 const exist_note = checkNoteExists(vault, titulo); // Verificar si la nota ya existe
 							 
 							 exist_note.then((res: any) => {
 							 		if (!res) {
 							 			const noteTitle = `${titulo}.md`; // Titulo de la nota
-							 			const noteContent = JSON.stringify( contenido, null, 4); // Convierte el resultado de la búsqueda en una cadena JSON formateada
-							 			createNoteAndSetContent(noteTitle, noteContent); //Crea la nota en obsidian
+							 			createNoteAndSetContent(noteTitle, results); //Crea la nota en obsidian
 
 										 setTimeout(() => {
-											openDocuments(titulo);
+											openDocuments(titulo);//espera a que la nota se cree y luego la abre
 										
 										}, 500);
 
 							 		} else {
-							 			const updatedContent = JSON.stringify( contenido, null, 4); // Convierte el resultado de la búsqueda en una cadena JSON formateada
-							 			updateNoteContent( vault, titulo, updatedContent);
+							 			updateNoteContent( vault, titulo, results);
 							 		}
 							 	})
 							 	.catch((error: any) => console.log(error));
@@ -332,10 +336,6 @@ export class NadhisView extends ItemView {
 	}
 			
 				
-				
-
-  
-  
 	//--------------------------------------------------------------------------------------
 
 	async onClose() {
