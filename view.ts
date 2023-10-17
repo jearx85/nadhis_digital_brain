@@ -20,12 +20,7 @@ export class NadhisView extends ItemView {
 	}
 
 	async onOpen() {
-		const files = this.app.vault.getFiles()//Obtener todos los documentos del vault  
-  
-		for (let i = 0; i < files.length; i++) {
-		console.log(files[i].path);
-		}
-		//---------------------------------------------------------------------------------
+		
 		//Creación de los elementos html
 		const container = document.createElement("div");
 		const searchBox = document.createElement("input");
@@ -136,11 +131,11 @@ export class NadhisView extends ItemView {
 				titulos.classList.add("titulos");
 
 				titulos.addEventListener("click", async () => {
-					
+					listarDocsVault(value);
 					
 					//console.log(`Haz hecho clic en el elemento ${value}`);
 					new Notice("Sincronizando documento");
-					searchTitle(value); // Hacer el query en el elemento seleccionado
+					//searchTitle(value); // Hacer el query en el elemento seleccionado
 					defaultOption.textContent = "Seleccione categoría";
 					defaultOption.selected = true;
 					defaultOption.disabled = true;
@@ -151,41 +146,7 @@ export class NadhisView extends ItemView {
 		}
 
 		//-----------------------------------------------------------------------------------------
-		//======================================> Hacer el query en el elemento seleccionado <======================================
-
-		async function searchTitle(title: string) {
-			const vault = app.vault;
-			queryTitle(`${title}`)
-				.then((results: any) => {
-					const titulo = results.hits.hits[0]._source.title; // Extraer titulo de la busqueda
-					const exist_note = checkNoteExists(vault, titulo); // Verificar si la nota ya existe
-					exist_note.then((res: any) => {
-							if (!res) {
-								const noteTitle = `${titulo}.md`; // Titulo de la nota
-								const noteContent = results.hits.hits[0]._source.mark; // Convierte el resultado de la búsqueda en una cadena JSON formateada
-								
-								createNoteAndSetContent(noteTitle, noteContent); //Crea la nota en obsidian
-								
-								setTimeout(() => {
-									openDocuments(titulo);//espera a que la nota se cree y luego la abre
-								
-								}, 1000);
-								
-							} else {
-								const updatedContent = results.hits.hits[0]._source.mark; // Convierte el resultado de la búsqueda en una cadena JSON formateada
-								
-								updateNoteContent( vault, titulo, updatedContent);
-
-							}
-						})
-						.catch((error: any) => console.log(error));
-				})
-				.catch((error) => {
-					console.error(`Error searching in Elasticsearch: ${error}`);
-				});
-		}
-
-		//--------------------------------------------------------------------------------------
+		
 		//=============================> Validar si ya existe la nota en obsidian <======================================
 
 		async function checkNoteExists( vault: Vault, title: string): Promise<boolean> {
@@ -251,7 +212,8 @@ export class NadhisView extends ItemView {
 					h4.classList.add("titulos");
 					queryCategories(resultado);
 					h4.addEventListener("click", () => {
-						searchTitle(resultado);
+						listarDocsVault(resultado);
+						//searchTitle(resultado);
 						container.empty();
 						searchBoxVector.textContent = "";
 						searchBox.value = "";
@@ -301,41 +263,63 @@ export class NadhisView extends ItemView {
 					 const vault = app.vault;
 
 					 res.addEventListener("click", () =>{
-						 semanticQueryContent(titulo).then((results) => {
-							//console.log(contenido)
-							 const exist_note = checkNoteExists(vault, titulo); // Verificar si la nota ya existe
-							 
-							 exist_note.then((res: any) => {
-							 		if (!res) {
-							 			const noteTitle = `${titulo}.md`; // Titulo de la nota
-							 			createNoteAndSetContent(noteTitle, results); //Crea la nota en obsidian
-
-										 setTimeout(() => {
-											openDocuments(titulo);//espera a que la nota se cree y luego la abre
-										
-										}, 500);
-
-							 		} else {
-							 			updateNoteContent( vault, titulo, results);
-							 		}
-							 	})
-							 	.catch((error: any) => console.log(error));
- 
-							 container.empty();
-							 searchBoxVector.value = "";
-						 })
-						 .catch((error) => {
-							 console.error(`Error searching in Elasticsearch: ${error}`);
-						 });
+						listarDocsVault(titulo);
+						container.empty();
+						searchBoxVector.value = "";
+						
 					 });
 				}
 			} catch (error) {
 				console.log(error);
 			}	
 		}
-	}
-			
-				
+//--------------------------------------------------------------------------------------------
+//======================== Listar todos los documentos del vault =================================
+		async function listarDocsVault(titulo: string) {
+			const selected = titulo//Obtiene el titulo al que le dimos click
+
+			const files = app.vault.getFiles()//Obtener todos los documentos del vault
+
+			let titulos = []
+
+			for (let i = 0; i < files.length; i++) {
+				titulos.push(files[i].basename)
+				if(!titulos.includes(selected)){
+					titulos.splice(0, 0, selected)//Agregar el elemento  seleccionado en la primera posición
+				}
+			}
+			//Enviar la lista de títulos como un arreglo
+			axios.post("http://192.168.50.230:8087/relacion/", titulos).then((response: any) => {
+				const vault = app.vault;
+				if	(response.status == 201){
+					//console.log(response.data)
+					const exist_note = checkNoteExists(vault, titulo); // Verificar si la nota ya existe
+					exist_note.then((res: any) => {
+							if (!res) {
+								const noteTitle = `${titulo}.md`; // Titulo de la nota
+								const noteContent = response.data; // Convierte el resultado de la búsqueda en una cadena JSON formateada
+								
+								createNoteAndSetContent(noteTitle, noteContent); //Crea la nota en obsidian
+								
+								setTimeout(() => {
+									openDocuments(titulo);//espera a que la nota se cree y luego la abre
+								
+								}, 1000);
+								
+							} else {
+								const updatedContent = response.data; // Convierte el resultado de la búsqueda en una cadena JSON formateada
+								
+								updateNoteContent( vault, titulo, updatedContent);
+
+							}
+						})
+						.catch((error: any) => console.log(error));
+				}
+			}).catch((error: any) => {
+				console.log(error);
+			});		
+		}
+	}		
 	//--------------------------------------------------------------------------------------
 
 	async onClose() {
