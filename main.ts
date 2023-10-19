@@ -1,4 +1,4 @@
-import { Plugin, Notice, App, Modal, Setting, TFile, TFolder, Vault, TAbstractFile } from "obsidian";
+import { Plugin } from "obsidian";
 import { NadhisView, NADHIS_VIEW } from "./view";
 
 export default class ExamplePlugin extends Plugin {
