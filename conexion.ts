@@ -1,4 +1,5 @@
 import { Client } from '@elastic/elasticsearch';
+const colors = require('colors');
 
 
 
@@ -23,7 +24,7 @@ export function conn(): Client {
 const client = conn();
 client.ping()
   .then(response => {
-    console.log('Connection to Elasticsearch established successfully!');
+    console.log(colors.rainbow("Nadhis digital brain "));
   })
   .catch(error => {
     console.error('Failed to connect to Elasticsearch:', error);
