@@ -1,5 +1,5 @@
-import { ItemView, WorkspaceLeaf, Plugin, Notice, App, Modal, Setting, TFile, TFolder, Vault, TAbstractFile, Workspace  } from "obsidian";
-import { queryTitle, queryCategory, queryCategories, semanticQueryContent } from "./funciones";
+import { ItemView, WorkspaceLeaf, Plugin, Notice, App, Modal, Setting, TFile, TFolder, Vault, TAbstractFile, Workspace } from "obsidian";
+import { queryCategory, queryCategories } from "./funciones";
 
 const axios = require('axios');
 
@@ -21,6 +21,7 @@ export class NadhisView extends ItemView {
 
 	async onOpen() {
 		
+		crearCarpetas();
 		//Creación de los elementos html
 		const container = document.createElement("div");
 		const searchBox = document.createElement("input");
@@ -53,7 +54,7 @@ export class NadhisView extends ItemView {
 		searchBox.placeholder = "Buscar...";
 
 		//======================================> Caja de busqueda por vectores <===========================
-		searchBoxVector.placeholder = "Busqueda avanzada";
+		searchBoxVector.placeholder = "¿Cuéntame de qué habla el documento que quieres encontrar?";
 		const vectors = searchBoxVector;
 		spinner.hide();
 
@@ -69,29 +70,62 @@ export class NadhisView extends ItemView {
 					searching.textContent = "buscando...";
 					
 					const data = searchBoxVector.value;
-					getEmbeddings(data).then(() => {
-						searching.textContent = "";
-						searchBoxVector.value = "";
-					});
+					setTimeout(() => {
+						getEmbeddings(data).then((res) => {
+							if (res == 200){
+								searching.textContent = "";
+								searchBoxVector.value = "";
+								searchBoxVector.textContent = "";
+								searchBox.value = "";
+								defaultOption.selected = true;
+								defaultOption.disabled = true;
+								defaultOption.textContent = "Seleccione categoría";
+								searchBox.hide();
+							}else{
+								spinner.style.display = 'none';
+								searchBoxVector.value = "";
+								searching.textContent = "Algo salió mal, intenta con más palabras";
+								searchBox.hide();
+								setTimeout(() => {
+									searching.textContent = "";
+									searchBoxVector.value = "";
+									
+								},4000)
+							}
+						});
+					},1500)
+						
+					
+					
 					
 
 				}else{
 					event.preventDefault();
 					new Notice("El campo de busqueda esta vacío");	
 					container.empty();
+					searchBoxVector.value = "";
+					searchBoxVector.textContent = "";
+					searchBox.value = "";
+					defaultOption.selected = true;
+					defaultOption.disabled = true;
+					defaultOption.textContent = "Seleccione categoría";
+					searchBox.hide();
 				}
 			}
 		});
 
 		//----------------------------------------------------------------
 		//======================================> Accion para cuando se escribe en el input <======================================
-
+		searchBox.hide();
 		const input = searchBox;
 		input.addEventListener("input",  function  () {
-		const texto = input.value;
-		const selectedOption = container2.value;
-		buscar(texto, selectedOption);
-		container.empty();
+			const texto = input.value;
+			if(texto == ""){
+				container.empty();
+			}
+			const selectedOption = container2.value;
+			buscar(texto, selectedOption);
+			container.empty();
 		});
 
 		//-----------------------------------------------------------------
@@ -113,6 +147,7 @@ export class NadhisView extends ItemView {
 		//Seleccionar categoria
 		container2.addEventListener("change", () => {
 			const selectedOption = container2.value;
+			searchBox.style.display = 'block';
 			//console.log("Seleccion:", selectedOption);
 			container.empty();
 			consultar(selectedOption);
@@ -131,6 +166,7 @@ export class NadhisView extends ItemView {
 				titulos.classList.add("titulos");
 
 				titulos.addEventListener("click", async () => {
+					searchBox.hide();
 					listarDocsVault(value);
 					
 					//console.log(`Haz hecho clic en el elemento ${value}`);
@@ -146,11 +182,10 @@ export class NadhisView extends ItemView {
 		}
 
 		//-----------------------------------------------------------------------------------------
-		
-		//=============================> Validar si ya existe la nota en obsidian <======================================
 
-		async function checkNoteExists( vault: Vault, title: string): Promise<boolean> {
-			const file = vault.getAbstractFileByPath(`${title}.md`);
+		//=============================> Validar si ya existe la nota en obsidian <======================================
+		async function checkNoteExists( vault: Vault, path: string): Promise<boolean> {
+			const file = vault.getAbstractFileByPath(path);
 			return file instanceof TAbstractFile;
 		}
 
@@ -159,7 +194,7 @@ export class NadhisView extends ItemView {
 
 		async function createNoteAndSetContent(title: string, content: string) {
 			try {
-				const newNote = await app.vault.create(title, content);
+				const newNote = await app.vault.create(`${title}.md`, content);
 				//console.log(`Created new note: ${newNote.name}`);
 				new Notice("Nuevo documento creado");
 
@@ -173,7 +208,7 @@ export class NadhisView extends ItemView {
 		//=============================> Actualizar nota <======================================
 
 		async function updateNoteContent( vault: Vault, title: string, content: string): Promise<void> {
-			const file = vault.getAbstractFileByPath(`${title}.md`);
+			const file = vault.getAbstractFileByPath(title);
 			if (file instanceof TFile) {
 				await vault.modify(file, content);
 				new Notice("Documento actualizado");
@@ -212,6 +247,7 @@ export class NadhisView extends ItemView {
 					h4.classList.add("titulos");
 					queryCategories(resultado);
 					h4.addEventListener("click", () => {
+						searchBox.hide();
 						listarDocsVault(resultado);
 						//searchTitle(resultado);
 						container.empty();
@@ -230,7 +266,7 @@ export class NadhisView extends ItemView {
 		//========> Abrir la nota seleccionada <============
 
 		async function openDocuments(title: string) {
-			const note = app.vault.getAbstractFileByPath(`${title}.md`)
+			const note = app.vault.getAbstractFileByPath(title)
 
 			if (note) {
 				try{
@@ -252,7 +288,6 @@ export class NadhisView extends ItemView {
 			try {
 				const respuesta = await axios.get(url);
 				spinner.style.display = 'none';
-				
 				const tamaño_res = respuesta.data.hits.length
                 for (let i = 0; i < tamaño_res; i++) {
 					const titulo =respuesta.data.hits[i]._source.title
@@ -260,67 +295,96 @@ export class NadhisView extends ItemView {
 					res.classList.add("titulos");
 					res.textContent = titulo;
 				
-					 const vault = app.vault;
-
 					 res.addEventListener("click", () =>{
+						searchBox.hide();
 						listarDocsVault(titulo);
-						container.empty();
-						searchBoxVector.value = "";
-						
+						container.empty();						
 					 });
 				}
+				return respuesta.status
 			} catch (error) {
-				console.log(error);
-			}	
+				console.log(error.message);
+			}
 		}
 //--------------------------------------------------------------------------------------------
 //======================== Listar todos los documentos del vault =================================
-		async function listarDocsVault(titulo: string) {
-			const selected = titulo//Obtiene el titulo al que le dimos click
-
+	async function listarDocsVault(titulo: string) {
+		const selected = titulo//Obtiene el titulo al que le dimos click
 			const files = app.vault.getFiles()//Obtener todos los documentos del vault
-
-			let titulos = []
-
+			let titulos = [];
+			let rutas = [];
+		
 			for (let i = 0; i < files.length; i++) {
 				titulos.push(files[i].basename)
+				rutas.push(files[i].path)
 				if(!titulos.includes(selected)){
 					titulos.splice(0, 0, selected)//Agregar el elemento  seleccionado en la primera posición
 				}
-			}
-			//Enviar la lista de títulos como un arreglo
-			axios.post("http://192.168.50.230:8087/relacion/", titulos).then((response: any) => {
-				const vault = app.vault;
-				if	(response.status == 201){
-					//console.log(response.data)
-					const exist_note = checkNoteExists(vault, titulo); // Verificar si la nota ya existe
-					exist_note.then((res: any) => {
-							if (!res) {
-								const noteTitle = `${titulo}.md`; // Titulo de la nota
-								const noteContent = response.data; // Convierte el resultado de la búsqueda en una cadena JSON formateada
-								
-								createNoteAndSetContent(noteTitle, noteContent); //Crea la nota en obsidian
-								
-								setTimeout(() => {
-									openDocuments(titulo);//espera a que la nota se cree y luego la abre
-								
-								}, 1000);
-								
-							} else {
-								const updatedContent = response.data; // Convierte el resultado de la búsqueda en una cadena JSON formateada
-								
-								updateNoteContent( vault, titulo, updatedContent);
 
-							}
-						})
-						.catch((error: any) => console.log(error));
+				if(files[i].path.includes(titulo)){
+					const ruta = files[i].path;
+
+					//Enviar la lista de títulos como un arreglo
+					axios.post("http://192.168.50.230:8087/relacion/", titulos).then(async(response: any) => {
+						const vault = app.vault;
+						if	(response.status == 201){
+								const noteTitle = ruta; // Titulo de la nota
+								const noteContent = response.data;
+								await updateNoteContent( vault, noteTitle, noteContent);
+								await validarNotaAbierta(noteTitle);
+								//await openDocuments(noteTitle);//espera a que la nota se cree y luego la abre	
+						}
+					}).catch((error: any) => {console.log(error);});
 				}
-			}).catch((error: any) => {
-				console.log(error);
-			});		
+			
+			}
+
+			const ruta: any = rutas.find((item) => item.includes(titulo));
+			if(!ruta){
+				axios.post("http://192.168.50.230:8087/relacion/", titulos).then(async(response: any) => {
+				const vault = app.vault;
+					if	(response.status == 201){
+			
+						const noteTitle = titulo; // Titulo de la nota
+						const noteContent = response.data; // Convierte el resultado de la búsqueda en una cadena JSON formateada
+						await createNoteAndSetContent(noteTitle, noteContent); //Crea la nota en obsidian
+
+						const exist_note = checkNoteExists(vault, titulo); // Verificar si la nota ya existe
+						exist_note.then(async(res: any) => {
+							if (!res) {
+									await openDocuments(`${titulo}.md`);//espera a que la nota se cree y luego la abre	
+								} 
+							})
+							.catch((error: any) => console.log(error));
+					}
+				}).catch((error: any) => {console.log(error);});	
+			}	
+	}
+
+//================================ Crear folder por cada categoria ==========================================		
+		async function crearCarpetas() {
+			const categories = await queryCategory();
+
+			for (const cat of categories) {
+					app.vault.createFolder(cat);
+					if(!cat){
+						new Notice(`Carpeta ${ cat } creada`)
+					}
+				
+			}
 		}
-	}		
-	//--------------------------------------------------------------------------------------
+//=============================== Validar si la nota ya esta abirta en obsidian ===============================
+		async function validarNotaAbierta(titulo: string){
+			const doc = app.workspace.getActiveFile()
+			const nota = doc?.path
+			if(titulo != nota){
+				openDocuments(titulo);
+			}
+		}
+
+ 	}	
+
+// 	//--------------------------------------------------------------------------------------
 
 	async onClose() {
 		// Nothing to clean up.
