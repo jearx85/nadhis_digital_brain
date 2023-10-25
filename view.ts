@@ -151,7 +151,7 @@ export class NadhisView extends ItemView {
 		container2.appendChild(defaultOption);
 
 		const opciones = await queryCategory();
-		opciones.forEach((option) => {
+		opciones.forEach((option: string | null) => {
 			const opcion = createEl("option");
 			container2.appendChild(opcion);
 			opcion.textContent = option;
@@ -238,7 +238,7 @@ export class NadhisView extends ItemView {
 			const response = queryCategories(categoria)        //.then((r) => console.log("RESULTADO RESPUESTA:",r));
 			.then((dato) => {         
 			 	//const name = dato?.find(e=>e === valor)
-			 	const resultados = dato.filter((item) =>
+			 	const resultados = dato.filter((item: string) =>
 			 		item.toLowerCase().includes(valor.toLowerCase())
 			 	);
 			 	mostrarResultados(resultados);
