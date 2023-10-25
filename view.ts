@@ -44,14 +44,14 @@ export class NadhisView extends ItemView {
 		this.containerEl.children[1].appendChild(container);
 		//=========================== Mensaje de bienvenida =================================
 
-		var userName:any = process.env.USERNAME;//Obtener nombre de usuario del sistema operativo
+		//var userName:any = process.env.USERNAME;//Obtener nombre de usuario del sistema operativo
     
 		searchBoxVector.hide();
 		container2.hide();
 
 		const user = container.createEl("h4");
 		user.className = "saludo";
-		user.textContent = `Bienvenido ${userName}`;
+		//user.textContent = `Bienvenido ${userName}`;
 
 		setTimeout(() => {
 			user.textContent = ""
@@ -435,7 +435,7 @@ async function crearCarpetas() {
 
  	}	
 
-// 	//--------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------
 
 	async onClose() {
 		// Nothing to clean up.
