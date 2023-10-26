@@ -1,5 +1,13 @@
+ .saludo{
+	display: flex;
+    justify-content: center;
+ }
+ 
  .titulos{
-    padding: 10px;
+	padding: 10px;
+	font-size: 16px;
+	font-weight: bold;
+    /* padding: 10px; */
     color: var(--vault-name-color);
   
 }
@@ -46,54 +54,6 @@
 .searchBox:hover{
     color: var(--interactive-accent);
 }
-
-.searchBoxVector{
-    box-shadow: 0 0 5px;
-    margin-top: 20px;
-    width: 100%;
-}
-
-.searchBoxVector:hover{
-    color: var(--interactive-accent);
-}
-
- .spinner {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  display: block;
-  margin:100px auto 0;
-  position: relative;
-  color: #b8d4b2;
-  box-sizing: border-box;
-  animation: animloader 1.1s linear infinite alternate;
-  
-}
-  @keyframes animloader {
-    0% {
-      box-shadow: -38px -12px #c60051 ,  -14px 0,  14px 0, 38px 0 , 68px 0;
-    }
-    25% {
-      box-shadow: -38px 0, -14px -12px #f95109,  14px 0, 38px 0 , 68px 0;
-    }
-    50% {
-      box-shadow: -38px 0, -14px 0 , 14px -12px #1694a4, 38px 0 , 68px 0;
-    }
-    75% {
-      box-shadow: -38px 0 , -14px 0, 14px 0, 38px -12px #86ce00, 68px 0;
-    }
-    100% {
-      box-shadow: -38px 0 , -14px 0, 14px 0 , 38px 0 , 68px -12px #f6c100;
-    }
-
-  }
-
-  .searching{
-    color: var(--interactive-accent);
-    /* margin-left: 7%; */
-    display: flex;
-    justify-content: center;
-  }
 
 .searchBoxVector{
     box-shadow: 0 0 5px;
