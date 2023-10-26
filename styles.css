@@ -1,5 +1,13 @@
+ .saludo{
+	display: flex;
+    justify-content: center;
+ }
+ 
  .titulos{
-    padding: 10px;
+	padding: 10px;
+	font-size: 16px;
+	font-weight: bold;
+    /* padding: 10px; */
     color: var(--vault-name-color);
   
 }
