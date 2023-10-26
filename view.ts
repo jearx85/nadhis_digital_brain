@@ -42,25 +42,6 @@ export class NadhisView extends ItemView {
 		this.containerEl.children[1].appendChild(searchBoxVector);
 		this.containerEl.children[1].appendChild(spinner);
 		this.containerEl.children[1].appendChild(container);
-		//=========================== Mensaje de bienvenida =================================
-
-		//var userName:any = process.env.USERNAME;//Obtener nombre de usuario del sistema operativo
-    
-		searchBoxVector.hide();
-		container2.hide();
-
-		const user = container.createEl("h4");
-		user.className = "saludo";
-		//user.textContent = `Bienvenido ${userName}`;
-
-		setTimeout(() => {
-			user.textContent = ""
-			container.show();
-			searchBoxVector.show();
-			container2.show();
-		},3000)
-
-		//=======================================================================================
 
 		//======================================> Caja de busqueda <======================================
 		searchBox.type = "text";
