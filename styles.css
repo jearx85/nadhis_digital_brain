@@ -4,18 +4,22 @@
  }
  
  .titulos{
+	margin-top: 25px;
 	padding: 10px;
-	font-size: 16px;
+	font-size: 14px;
 	font-weight: bold;
-    /* padding: 10px; */
-    color: var(--vault-name-color);
-  
+  	color: var(--vault-name-color);
+	overflow: auto;
+  	box-shadow: var(--input-shadow);
+	border: var(--interactive-accent);
+	border-radius: 10px;
+  	background-color: var(--interactive-normal);
 }
 
 .titulos:hover{
     color: var(--interactive-accent);
     cursor: pointer;
-   
+	background-color: var(--bg_highlight);
 } 
 
  .my-container{

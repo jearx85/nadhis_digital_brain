@@ -156,7 +156,7 @@ export class NadhisView extends ItemView {
 			//console.log(datos);
 			datos.forEach((value: any) => {
 				const titulos = container.createEl("h4");
-				titulos.textContent = value;
+				titulos.textContent = `* ${value}`;
 				titulos.classList.add("titulos");
 				//titulos.hide();
 				titulos.addEventListener("click", async () => {
