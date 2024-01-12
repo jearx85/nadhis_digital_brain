@@ -277,7 +277,7 @@ export class NadhisView extends ItemView {
 		//--------------------------------------------------------------------------------------
 		//======================> Funcion para busqueda vectorizada <===========================
 		async function getEmbeddings(query: string) {
-			const url = `http://192.168.50.230:8087/query/${query}`;
+			const url = `http://192.168.50.236:8087/query/${query}`;
 		  
 			try {
 			  const response = await fetch(url, {
@@ -336,7 +336,7 @@ export class NadhisView extends ItemView {
 		
 				// Enviar la lista de títulos como un arreglo
 				try {
-				const response = await fetch("http://192.168.50.230:8087/relacion/", {
+				const response = await fetch("http://192.168.50.236:8087/relacion/", {
 					method: "POST",
 					headers: {
 					"Content-Type": "application/json",
@@ -360,7 +360,7 @@ export class NadhisView extends ItemView {
 			const ruta = rutas.find((item) => item.includes(titulo));
 			if (!ruta) {
 			try {
-				const response = await fetch("http://192.168.50.230:8087/relacion/", {
+				const response = await fetch("http://192.168.50.236:8087/relacion/", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

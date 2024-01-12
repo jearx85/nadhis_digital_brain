@@ -1,7 +1,7 @@
 //-------------------------------------------------------------------------------------------    
 //=============================> Query para listar categorías <=============================
 export async function queryCategory(): Promise<any> {
-  const url = "http://192.168.50.230:8087/categoria";
+  const url = "http://192.168.50.236:8087/categoria";
 			try {
 			  const response = await fetch(url, {
 				method: 'GET',
@@ -23,7 +23,7 @@ export async function queryCategory(): Promise<any> {
 //=============================> buscar doc por categoria asociada <=============================
 
 export async function queryCategories(category: string): Promise<any> {
-  const url = `http://192.168.50.230:8087/categorias?category=${category}`;
+  const url = `http://192.168.50.236:8087/categorias?category=${category}`;
   try {
     const response = await fetch(url, {
     method: 'GET',
